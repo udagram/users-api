@@ -11,4 +11,4 @@ COPY . .
 # Expose the port 
 EXPOSE 8080
 # Define the command that should be executed
-CMD [ "npm", "run", "dev" ]
+CMD [ "npm", "run", "prod" ]
