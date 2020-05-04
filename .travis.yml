@@ -4,6 +4,8 @@ services: docker
 
 install:
   - docker build -t omarradwan213/udagram-users-api .
+  - echo "$REGISTRY_PASS" | docker login -u "$REGISTRY_USER" --password-stdin
+  - docker image push omarradwan213/udagram-users-api
   
 before_deploy:
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -13,14 +15,8 @@ before_deploy:
   - echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
     
 deploy:
-  - provider: script
-    script:
-      - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
-      - docker image push omarradwan213/udagram-users-api
-    on:
-      branch: master
-  - provider: script
-    script:
-      - kubectl rollout restart deployment users-api
-    on:
-      branch: master
+  provider: script
+  script:
+    - kubectl rollout restart deployment users-api
+  on:
+    branch: master
