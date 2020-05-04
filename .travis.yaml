@@ -1,0 +1,34 @@
+language: minimal
+
+services: docker
+
+before_install:
+  - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+  - chmod +x ./kubectl
+  - sudo mv ./kubectl /usr/local/bin/kubectl
+  - docker rmi -f omarradwan213/udagram-users-api
+
+install:
+  - docker build -t omarradwan213/udagram-users-api .
+
+before_deploy:
+  - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+
+deploy:
+  - provider: script
+    script:
+        - docker image push omarradwan213/udagram-users-api
+    on:
+      branch: master
+  - provider: script
+    script:
+        - echo ${KUBERNETES_CA} | base64 --decode > udagram-ca.pem
+        - echo ${KUBERNETES_CLIENT_CA} | base64 --decode > udagram-client-ca.pem
+        - echo ${KUBERNETES_CLIENT_KEY} | base64 --decode > udagram-key.pem
+        - kubectl config set-cluster udagram --server=${KUBERNETES_ENDPOINT} --certificate-authority=udagram-ca.pem
+        - kubectl config set-credentials kubernetes-admin --client-certificate=udagram-client-ca.pem --client-key=udagram-key.pem
+        - kubectl config set-context kubernetes-admin@udagram --cluster=udagram --namespace=default --user=kubernetes-admin
+        - kubectl config use-context kubernetes-admin@udagram
+        - kubectl rollout restart deployment users-api
+    on:
+      branch: master
