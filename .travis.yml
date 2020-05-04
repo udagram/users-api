@@ -18,10 +18,6 @@ deploy:
   - provider: script
     script:
         - docker image push omarradwan213/udagram-users-api
-    on:
-      branch: master
-  - provider: script
-    script:
         - echo ${KUBERNETES_CA} | base64 --decode > udagram-ca.pem
         - echo ${KUBERNETES_CLIENT_CA} | base64 --decode > udagram-client-ca.pem
         - echo ${KUBERNETES_CLIENT_KEY} | base64 --decode > udagram-key.pem
